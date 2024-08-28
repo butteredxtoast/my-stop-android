@@ -5,12 +5,34 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!-- Header -->
+    <TextView
+        android:id="@+id/headerTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Transit Data"
+        android:textSize="24sp"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="16dp" />
+
+    <!-- Toggle Button -->
+    <Button
+        android:id="@+id/toggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show Data"
+        android:layout_gravity="center_horizontal"
+        android:padding="8dp" />
+
+    <!-- TextView for displaying data (Initially hidden) -->
     <TextView
         android:id="@+id/responseTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Awaiting data..."
+        android:text=""
         android:textSize="18sp"
-        android:textColor="#000000" />
-
+        android:textColor="#000000"
+        android:visibility="gone" />
 </LinearLayout>
