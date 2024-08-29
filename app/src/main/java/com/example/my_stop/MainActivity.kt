@@ -17,6 +17,7 @@ import java.time.temporal.ChronoUnit
 class MainActivity : AppCompatActivity() {
     private lateinit var responseTextView: TextView
     private lateinit var toggleButton: Button
+    private lateinit var refreshButton: Button
     private var isDataVisible = false
     private var formattedData: String? = null
 
@@ -26,6 +27,7 @@ class MainActivity : AppCompatActivity() {
 
         responseTextView = findViewById(R.id.responseTextView)
         toggleButton = findViewById(R.id.toggleButton)
+        refreshButton = findViewById(R.id.refreshButton)
 
         // Initially set the button to show data
         toggleButton.text = "Show Data"
@@ -34,6 +36,7 @@ class MainActivity : AppCompatActivity() {
         toggleButton.setOnClickListener {
             if (isDataVisible) {
                 responseTextView.visibility = View.GONE
+                refreshButton.visibility = View.GONE
                 toggleButton.text = "Show Data"
                 isDataVisible = false
             } else {
@@ -42,17 +45,23 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     responseTextView.text = formattedData
                     responseTextView.visibility = View.VISIBLE
+                    refreshButton.visibility = View.VISIBLE
                     toggleButton.text = "Hide Data"
                     isDataVisible = true
                 }
             }
+        }
+
+        // Set up the refresh button click listener
+        refreshButton.setOnClickListener {
+            fetchAndFormatData()
         }
     }
 
     // Function to fetch data from the API and format it
     private fun fetchAndFormatData() {
         val queue = Volley.newRequestQueue(this)
-        val url = "https://bigbilly.net/real-time-arrivals/15567/SF"
+        val url = "https://my-stop.app/real-time-arrivals/15567/SF"
 
         val stringRequest = StringRequest(
             Request.Method.GET, url,
@@ -60,12 +69,14 @@ class MainActivity : AppCompatActivity() {
                 formattedData = formatJsonResponse(response)
                 responseTextView.text = formattedData
                 responseTextView.visibility = View.VISIBLE
+                refreshButton.visibility = View.VISIBLE
                 toggleButton.text = "Hide Data"
                 isDataVisible = true
             },
             { error ->
                 responseTextView.text = "Error fetching data: ${error.message}"
                 responseTextView.visibility = View.VISIBLE
+                refreshButton.visibility = View.VISIBLE
                 toggleButton.text = "Hide Data"
                 isDataVisible = true
             })
@@ -88,8 +99,7 @@ class MainActivity : AppCompatActivity() {
                 val visit = monitoredStopVisits.getJSONObject(i)
                 val vehicleJourney = visit.getJSONObject("MonitoredVehicleJourney")
 
-                val lineName = vehicleJourney.getString("PublishedLineName")
-                val destinationName = vehicleJourney.getString("DestinationName")
+                val lineRef = vehicleJourney.getString("LineRef")
                 val expectedArrivalTime = vehicleJourney.getJSONObject("MonitoredCall")
                     .getString("ExpectedArrivalTime")
 
@@ -101,8 +111,7 @@ class MainActivity : AppCompatActivity() {
                 val minutesAway = ChronoUnit.MINUTES.between(now, arrivalTime)
 
                 // Append the data to the formatted response
-                formattedResponse.append("Line: $lineName\n")
-                formattedResponse.append("Destination: $destinationName\n")
+                formattedResponse.append("Line #: $lineRef\n")
                 formattedResponse.append("$minutesAway minutes away\n")
                 formattedResponse.append("\n")
             }

@@ -26,6 +26,16 @@
         android:layout_gravity="center_horizontal"
         android:padding="8dp" />
 
+    <!-- Refresh Button -->
+    <Button
+        android:id="@+id/refreshButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Refresh Data"
+        android:layout_gravity="center_horizontal"
+        android:padding="8dp"
+        android:visibility="gone" /> <!-- Initially hidden -->
+
     <!-- TextView for displaying data (Initially hidden) -->
     <TextView
         android:id="@+id/responseTextView"
