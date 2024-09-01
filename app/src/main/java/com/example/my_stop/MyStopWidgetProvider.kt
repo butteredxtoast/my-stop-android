@@ -31,7 +31,6 @@ class MyStopWidgetProvider : AppWidgetProvider() {
 
         fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             try {
-                // Attempt to inflate the layout and update the widget
                 val views = RemoteViews(context.packageName, R.layout.widget_layout)
 
                 val intent = Intent(context, MyStopWidgetProvider::class.java).apply {
@@ -40,7 +39,6 @@ class MyStopWidgetProvider : AppWidgetProvider() {
                 val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 views.setOnClickPendingIntent(R.id.widget_refresh_button, pendingIntent)
 
-                // Optionally, you can add another try/catch around this fetch method if needed
                 fetchDataAndUpdateWidget(context, views, appWidgetManager, appWidgetId)
 
             } catch (e: InvocationTargetException) {
@@ -55,47 +53,59 @@ class MyStopWidgetProvider : AppWidgetProvider() {
 
         private fun fetchDataAndUpdateWidget(context: Context, views: RemoteViews, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val queue = Volley.newRequestQueue(context)
-            val url = "https://my-stop.app/real-time-arrivals/15567/SF"
+            val muniUrl = "https://my-stop.app/real-time-arrivals/15567/SF"
+            val bartUrl = "https://my-stop.app/real-time-arrivals/24TH/BA"
 
             val stringRequest = StringRequest(
-                Request.Method.GET, url,
+                Request.Method.GET, muniUrl,
                 { response ->
                     try {
                         val jsonObject = JSONObject(response)
-                        val visit = jsonObject.getJSONObject("ServiceDelivery")
+                        val monitoredStopVisits = jsonObject.getJSONObject("ServiceDelivery")
                             .getJSONObject("StopMonitoringDelivery")
                             .getJSONArray("MonitoredStopVisit")
-                            .getJSONObject(0)
-                            .getJSONObject("MonitoredVehicleJourney")
 
-                        val lineRef = visit.getString("LineRef")
-                        val expectedArrivalTime = visit.getJSONObject("MonitoredCall")
+                        // Process first and second visits
+                        val firstVisit = monitoredStopVisits.getJSONObject(0).getJSONObject("MonitoredVehicleJourney")
+                        val secondVisit = monitoredStopVisits.getJSONObject(1).getJSONObject("MonitoredVehicleJourney")
+
+                        // Extract first line data
+                        val firstLineRef = firstVisit.getString("LineRef")
+                        val firstExpectedArrivalTime = firstVisit.getJSONObject("MonitoredCall")
                             .getString("ExpectedArrivalTime")
+                        val firstArrivalTime = ZonedDateTime.parse(firstExpectedArrivalTime, DateTimeFormatter.ISO_ZONED_DATE_TIME)
+                        val firstMinutesAway = ChronoUnit.MINUTES.between(ZonedDateTime.now(), firstArrivalTime)
 
-                        val arrivalTime = ZonedDateTime.parse(expectedArrivalTime, DateTimeFormatter.ISO_ZONED_DATE_TIME)
-                        val now = ZonedDateTime.now()
-                        val minutesAway = ChronoUnit.MINUTES.between(now, arrivalTime)
+                        // Extract second line data
+                        val secondLineRef = secondVisit.getString("LineRef")
+                        val secondExpectedArrivalTime = secondVisit.getJSONObject("MonitoredCall")
+                            .getString("ExpectedArrivalTime")
+                        val secondArrivalTime = ZonedDateTime.parse(secondExpectedArrivalTime, DateTimeFormatter.ISO_ZONED_DATE_TIME)
+                        val secondMinutesAway = ChronoUnit.MINUTES.between(ZonedDateTime.now(), secondArrivalTime)
 
                         // Update the widget views with the fetched data
-                        views.setTextViewText(R.id.widget_line_ref, "Line #: $lineRef")
-                        views.setTextViewText(R.id.widget_minutes_away, "$minutesAway min")
+                        views.setTextViewText(R.id.widget_line_ref, "Line #: $firstLineRef")
+                        views.setTextViewText(R.id.widget_minutes_away, "$firstMinutesAway min")
+                        views.setTextViewText(R.id.widget_line_ref_2, "Line #: $secondLineRef")
+                        views.setTextViewText(R.id.widget_minutes_away_2, "$secondMinutesAway min")
 
                     } catch (e: Exception) {
-                        // Handle JSON parsing error
                         Log.e("MyStopWidgetProvider", "Error processing JSON response", e)
                         views.setTextViewText(R.id.widget_line_ref, "Error")
                         views.setTextViewText(R.id.widget_minutes_away, "N/A")
-                        // Show a toast for the JSON error
+                        views.setTextViewText(R.id.widget_line_ref_2, "Error")
+                        views.setTextViewText(R.id.widget_minutes_away_2, "N/A")
                         Toast.makeText(context, "Error processing data", Toast.LENGTH_SHORT).show()
                     } finally {
                         appWidgetManager.updateAppWidget(appWidgetId, views)
                     }
                 },
                 { error ->
-                    // Handle the error by displaying a message in the widget
                     Log.e("MyStopWidgetProvider", "Error fetching data: ${error.message}")
                     views.setTextViewText(R.id.widget_line_ref, "Failed to load")
                     views.setTextViewText(R.id.widget_minutes_away, "Check connection")
+                    views.setTextViewText(R.id.widget_line_ref_2, "Failed to load")
+                    views.setTextViewText(R.id.widget_minutes_away_2, "Check connection")
                     appWidgetManager.updateAppWidget(appWidgetId, views)
 
                     // Show a toast with the error message

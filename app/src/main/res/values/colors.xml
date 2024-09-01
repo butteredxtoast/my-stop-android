@@ -1,5 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Purple Colors -->
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+
+    <!-- Teal Colors -->
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
+
+    <!-- Background color for dark mode -->
+    <color name="background_dark">#121212</color>
+
+    <!-- Primary text color for dark mode -->
+    <color name="primaryTextColor">#FFFFFF</color>
+
+    <!-- Secondary text color for dark mode -->
+    <color name="secondaryTextColor">#B3B3B3</color>
 </resources>

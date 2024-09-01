@@ -3,46 +3,43 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="?android:attr/windowBackground">
 
-    <!-- Header -->
-    <TextView
-        android:id="@+id/headerTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Transit Data"
-        android:textSize="24sp"
-        android:textColor="#000000"
-        android:textStyle="bold"
-        android:layout_gravity="center_horizontal"
-        android:paddingBottom="16dp" />
-
-    <!-- Toggle Button -->
+    <!-- Button to Show MUNI Data -->
     <Button
         android:id="@+id/toggleButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Show Data"
-        android:layout_gravity="center_horizontal"
-        android:padding="8dp" />
+        android:text="Show MUNI Data"
+        android:textColor="?android:attr/textColorPrimary"
+        android:background="?android:attr/selectableItemBackground" />
+
+    <!-- Button to Show BART Data -->
+    <Button
+        android:id="@+id/toggleBartButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show BART Data"
+        android:textColor="?android:attr/textColorPrimary"
+        android:background="?android:attr/selectableItemBackground" />
+
+    <!-- TextView to Display the Response -->
+    <TextView
+        android:id="@+id/responseTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Awaiting data..."
+        android:textSize="18sp"
+        android:textColor="?android:attr/textColorPrimary" />
 
     <!-- Refresh Button -->
     <Button
         android:id="@+id/refreshButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Refresh Data"
-        android:layout_gravity="center_horizontal"
-        android:padding="8dp"
-        android:visibility="gone" /> <!-- Initially hidden -->
-
-    <!-- TextView for displaying data (Initially hidden) -->
-    <TextView
-        android:id="@+id/responseTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="18sp"
-        android:textColor="#000000"
-        android:visibility="gone" />
+        android:text="Refresh"
+        android:visibility="gone"
+        android:textColor="?android:attr/textColorPrimary"
+        android:background="?android:attr/selectableItemBackground" />
 </LinearLayout>

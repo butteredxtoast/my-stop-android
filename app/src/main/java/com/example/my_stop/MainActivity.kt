@@ -13,72 +13,83 @@ import org.json.JSONObject
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
     private lateinit var responseTextView: TextView
-    private lateinit var toggleButton: Button
+    private lateinit var toggleMuniButton: Button
+    private lateinit var toggleBartButton: Button
     private lateinit var refreshButton: Button
     private var isDataVisible = false
     private var formattedData: String? = null
+    private val muniUrl = "https://my-stop.app/real-time-arrivals/15567/SF"
+    private val bartUrl = "https://my-stop.app/real-time-arrivals/24TH/BA"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         responseTextView = findViewById(R.id.responseTextView)
-        toggleButton = findViewById(R.id.toggleButton)
+        toggleMuniButton = findViewById(R.id.toggleButton)
+        toggleBartButton = findViewById(R.id.toggleBartButton)
         refreshButton = findViewById(R.id.refreshButton)
 
-        // Initially set the button to show data
-        toggleButton.text = "Show Data"
+        // Initially set the MUNI button to show data
+        toggleMuniButton.text = "Show MUNI Data"
 
-        // Set up the toggle button click listener
-        toggleButton.setOnClickListener {
+        toggleMuniButton.setOnClickListener {
             if (isDataVisible) {
                 responseTextView.visibility = View.GONE
                 refreshButton.visibility = View.GONE
-                toggleButton.text = "Show Data"
+                toggleMuniButton.text = "Show MUNI Data"
                 isDataVisible = false
             } else {
-                if (formattedData == null) {
-                    fetchAndFormatData()
-                } else {
-                    responseTextView.text = formattedData
-                    responseTextView.visibility = View.VISIBLE
-                    refreshButton.visibility = View.VISIBLE
-                    toggleButton.text = "Hide Data"
-                    isDataVisible = true
-                }
+                fetchAndFormatData(muniUrl)
+                responseTextView.visibility = View.VISIBLE
+                refreshButton.visibility = View.VISIBLE
+                toggleMuniButton.text = "Hide Data"
+                isDataVisible = true
+            }
+        }
+
+        toggleBartButton.setOnClickListener {
+            if (isDataVisible) {
+                responseTextView.visibility = View.GONE
+                refreshButton.visibility = View.GONE
+                toggleBartButton.text = "Show BART Data"
+                isDataVisible = false
+            } else {
+                fetchAndFormatData(bartUrl)
+                responseTextView.visibility = View.VISIBLE
+                refreshButton.visibility = View.VISIBLE
+                toggleBartButton.text = "Hide Data"
+                isDataVisible = true
             }
         }
 
         // Set up the refresh button click listener
         refreshButton.setOnClickListener {
-            fetchAndFormatData()
+            // Refresh the currently displayed data
+            if (toggleMuniButton.text == "Hide Data") {
+                fetchAndFormatData(muniUrl)
+            } else if (toggleBartButton.text == "Hide Data") {
+                fetchAndFormatData(bartUrl)
+            }
         }
     }
 
-    // Function to fetch data from the API and format it
-    private fun fetchAndFormatData() {
+    // Function to fetch data from the provided URL and format it
+    private fun fetchAndFormatData(url: String) {
         val queue = Volley.newRequestQueue(this)
-        val url = "https://my-stop.app/real-time-arrivals/15567/SF"
 
         val stringRequest = StringRequest(
             Request.Method.GET, url,
             { response ->
                 formattedData = formatJsonResponse(response)
                 responseTextView.text = formattedData
-                responseTextView.visibility = View.VISIBLE
-                refreshButton.visibility = View.VISIBLE
-                toggleButton.text = "Hide Data"
-                isDataVisible = true
             },
             { error ->
                 responseTextView.text = "Error fetching data: ${error.message}"
-                responseTextView.visibility = View.VISIBLE
-                refreshButton.visibility = View.VISIBLE
-                toggleButton.text = "Hide Data"
-                isDataVisible = true
             })
 
         queue.add(stringRequest)
