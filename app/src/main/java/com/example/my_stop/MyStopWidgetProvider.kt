@@ -13,7 +13,6 @@ import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
-import java.lang.reflect.InvocationTargetException
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -39,25 +38,52 @@ class MyStopWidgetProvider : AppWidgetProvider() {
                 val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                 views.setOnClickPendingIntent(R.id.widget_refresh_button, pendingIntent)
 
-                fetchDataAndUpdateWidget(context, views, appWidgetManager, appWidgetId)
+                // Fetch and update for MUNI
+                fetchDataAndUpdateWidget(
+                    context,
+                    views,
+                    appWidgetManager,
+                    appWidgetId,
+                    "https://my-stop.app/real-time-arrivals/15567/SF",
+                    R.id.widget_muni_line_ref,
+                    R.id.widget_muni_minutes_away,
+                    R.id.widget_muni_line_ref_2,
+                    R.id.widget_muni_minutes_away_2
+                )
 
-            } catch (e: InvocationTargetException) {
-                val cause = e.cause
-                Log.e("MyStopWidgetProvider", "Error inflating layout", cause)
-                // Handle the specific cause of the exception here if needed
+                // Fetch and update for BART
+                fetchDataAndUpdateWidget(
+                    context,
+                    views,
+                    appWidgetManager,
+                    appWidgetId,
+                    "https://my-stop.app/real-time-arrivals/24TH/BA",
+                    R.id.widget_bart_line_ref,
+                    R.id.widget_bart_minutes_away,
+                    R.id.widget_bart_line_ref_2,
+                    R.id.widget_bart_minutes_away_2
+                )
+
             } catch (e: Exception) {
-                // Catch any other exceptions
-                Log.e("MyStopWidgetProvider", "General error in widget update", e)
+                Log.e("MyStopWidgetProvider", "Error in widget update", e)
             }
         }
 
-        private fun fetchDataAndUpdateWidget(context: Context, views: RemoteViews, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+        private fun fetchDataAndUpdateWidget(
+            context: Context,
+            views: RemoteViews,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int,
+            url: String,
+            lineRefViewId1: Int,
+            minutesAwayViewId1: Int,
+            lineRefViewId2: Int,
+            minutesAwayViewId2: Int
+        ) {
             val queue = Volley.newRequestQueue(context)
-            val muniUrl = "https://my-stop.app/real-time-arrivals/15567/SF"
-            val bartUrl = "https://my-stop.app/real-time-arrivals/24TH/BA"
 
             val stringRequest = StringRequest(
-                Request.Method.GET, muniUrl,
+                Request.Method.GET, url,
                 { response ->
                     try {
                         val jsonObject = JSONObject(response)
@@ -65,36 +91,46 @@ class MyStopWidgetProvider : AppWidgetProvider() {
                             .getJSONObject("StopMonitoringDelivery")
                             .getJSONArray("MonitoredStopVisit")
 
-                        // Process first and second visits
-                        val firstVisit = monitoredStopVisits.getJSONObject(0).getJSONObject("MonitoredVehicleJourney")
-                        val secondVisit = monitoredStopVisits.getJSONObject(1).getJSONObject("MonitoredVehicleJourney")
+                        // First upcoming stop
+                        val firstVisit = monitoredStopVisits.getJSONObject(0)
+                            .getJSONObject("MonitoredVehicleJourney")
 
-                        // Extract first line data
-                        val firstLineRef = firstVisit.getString("LineRef")
-                        val firstExpectedArrivalTime = firstVisit.getJSONObject("MonitoredCall")
+                        val lineRef1 = firstVisit.getString("LineRef")
+                        val expectedArrivalTime1 = firstVisit.getJSONObject("MonitoredCall")
                             .getString("ExpectedArrivalTime")
-                        val firstArrivalTime = ZonedDateTime.parse(firstExpectedArrivalTime, DateTimeFormatter.ISO_ZONED_DATE_TIME)
-                        val firstMinutesAway = ChronoUnit.MINUTES.between(ZonedDateTime.now(), firstArrivalTime)
 
-                        // Extract second line data
-                        val secondLineRef = secondVisit.getString("LineRef")
-                        val secondExpectedArrivalTime = secondVisit.getJSONObject("MonitoredCall")
-                            .getString("ExpectedArrivalTime")
-                        val secondArrivalTime = ZonedDateTime.parse(secondExpectedArrivalTime, DateTimeFormatter.ISO_ZONED_DATE_TIME)
-                        val secondMinutesAway = ChronoUnit.MINUTES.between(ZonedDateTime.now(), secondArrivalTime)
+                        val arrivalTime1 = ZonedDateTime.parse(expectedArrivalTime1, DateTimeFormatter.ISO_ZONED_DATE_TIME)
+                        val now1 = ZonedDateTime.now()
+                        val minutesAway1 = ChronoUnit.MINUTES.between(now1, arrivalTime1)
 
-                        // Update the widget views with the fetched data
-                        views.setTextViewText(R.id.widget_line_ref, "Line #: $firstLineRef")
-                        views.setTextViewText(R.id.widget_minutes_away, "$firstMinutesAway min")
-                        views.setTextViewText(R.id.widget_line_ref_2, "Line #: $secondLineRef")
-                        views.setTextViewText(R.id.widget_minutes_away_2, "$secondMinutesAway min")
+                        views.setTextViewText(lineRefViewId1, "Line #: $lineRef1")
+                        views.setTextViewText(minutesAwayViewId1, "$minutesAway1 min")
+
+                        // Second upcoming stop
+                        if (monitoredStopVisits.length() > 1) {
+                            val secondVisit = monitoredStopVisits.getJSONObject(1)
+                                .getJSONObject("MonitoredVehicleJourney")
+
+                            val lineRef2 = secondVisit.getString("LineRef")
+                            val expectedArrivalTime2 = secondVisit.getJSONObject("MonitoredCall")
+                                .getString("ExpectedArrivalTime")
+
+                            val arrivalTime2 = ZonedDateTime.parse(expectedArrivalTime2, DateTimeFormatter.ISO_ZONED_DATE_TIME)
+                            val minutesAway2 = ChronoUnit.MINUTES.between(now1, arrivalTime2)
+
+                            views.setTextViewText(lineRefViewId2, "Line #: $lineRef2")
+                            views.setTextViewText(minutesAwayViewId2, "$minutesAway2 min")
+                        } else {
+                            views.setTextViewText(lineRefViewId2, "Line #: N/A")
+                            views.setTextViewText(minutesAwayViewId2, "N/A")
+                        }
 
                     } catch (e: Exception) {
                         Log.e("MyStopWidgetProvider", "Error processing JSON response", e)
-                        views.setTextViewText(R.id.widget_line_ref, "Error")
-                        views.setTextViewText(R.id.widget_minutes_away, "N/A")
-                        views.setTextViewText(R.id.widget_line_ref_2, "Error")
-                        views.setTextViewText(R.id.widget_minutes_away_2, "N/A")
+                        views.setTextViewText(lineRefViewId1, "Error")
+                        views.setTextViewText(minutesAwayViewId1, "N/A")
+                        views.setTextViewText(lineRefViewId2, "Error")
+                        views.setTextViewText(minutesAwayViewId2, "N/A")
                         Toast.makeText(context, "Error processing data", Toast.LENGTH_SHORT).show()
                     } finally {
                         appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -102,10 +138,10 @@ class MyStopWidgetProvider : AppWidgetProvider() {
                 },
                 { error ->
                     Log.e("MyStopWidgetProvider", "Error fetching data: ${error.message}")
-                    views.setTextViewText(R.id.widget_line_ref, "Failed to load")
-                    views.setTextViewText(R.id.widget_minutes_away, "Check connection")
-                    views.setTextViewText(R.id.widget_line_ref_2, "Failed to load")
-                    views.setTextViewText(R.id.widget_minutes_away_2, "Check connection")
+                    views.setTextViewText(lineRefViewId1, "Failed to load")
+                    views.setTextViewText(minutesAwayViewId1, "Check connection")
+                    views.setTextViewText(lineRefViewId2, "Failed to load")
+                    views.setTextViewText(minutesAwayViewId2, "Check connection")
                     appWidgetManager.updateAppWidget(appWidgetId, views)
 
                     // Show a toast with the error message
