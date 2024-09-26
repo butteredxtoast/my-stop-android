@@ -8,4 +8,9 @@
     <string name="previous">Previous</string>
     <string name="refresh">Refresh</string>
     <string name="error_message">Error fetching data: %1$s</string>
+    <string name="select_agency">Select Transit Agency</string>
+    <string-array name="agency_array">
+        <item>BART</item>
+        <item>MUNI</item>
+    </string-array>
 </resources>

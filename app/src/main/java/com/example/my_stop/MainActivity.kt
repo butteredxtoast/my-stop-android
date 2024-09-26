@@ -2,8 +2,7 @@ package com.example.my_stop
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
@@ -13,83 +12,102 @@ import org.json.JSONObject
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
+
     private lateinit var responseTextView: TextView
-    private lateinit var toggleMuniButton: Button
-    private lateinit var toggleBartButton: Button
     private lateinit var refreshButton: Button
-    private var isDataVisible = false
-    private var formattedData: String? = null
-    private val muniUrl = "https://my-stop.app/real-time-arrivals/15567/SF"
-    private val bartUrl = "https://my-stop.app/real-time-arrivals/24TH/BA"
+    private lateinit var agencySpinner: Spinner
+    private lateinit var lineSpinner: Spinner
+    private lateinit var directionSpinner: Spinner
+    private lateinit var stopSpinner: Spinner
+
+    private var selectedAgency: String = "MUNI"  // Default to MUNI
+    private var selectedLine: String = ""
+    private var selectedDirection: String = ""
+    private var selectedStop: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         responseTextView = findViewById(R.id.responseTextView)
-        toggleMuniButton = findViewById(R.id.toggleButton)
-        toggleBartButton = findViewById(R.id.toggleBartButton)
         refreshButton = findViewById(R.id.refreshButton)
+        agencySpinner = findViewById(R.id.agencySpinner)
+        lineSpinner = findViewById(R.id.lineSpinner)
+        directionSpinner = findViewById(R.id.directionSpinner)
+        stopSpinner = findViewById(R.id.stopSpinner)
 
-        // Initially set the MUNI button to show data
-        toggleMuniButton.text = "Show MUNI Data"
+        // Populate the agency spinner
+        populateAgencySpinner()
 
-        toggleMuniButton.setOnClickListener {
-            if (isDataVisible) {
-                responseTextView.visibility = View.GONE
-                refreshButton.visibility = View.GONE
-                toggleMuniButton.text = "Show MUNI Data"
-                isDataVisible = false
-            } else {
-                fetchAndFormatData(muniUrl)
-                responseTextView.visibility = View.VISIBLE
-                refreshButton.visibility = View.VISIBLE
-                toggleMuniButton.text = "Hide Data"
-                isDataVisible = true
+        // Set up the Agency Spinner onItemSelectedListener
+        agencySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                selectedAgency = parent.getItemAtPosition(position).toString()
+                lineSpinner.visibility = View.VISIBLE
+                populateLineSpinner()  // Populate line spinner when an agency is selected
             }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
-        toggleBartButton.setOnClickListener {
-            if (isDataVisible) {
-                responseTextView.visibility = View.GONE
-                refreshButton.visibility = View.GONE
-                toggleBartButton.text = "Show BART Data"
-                isDataVisible = false
-            } else {
-                fetchAndFormatData(bartUrl)
-                responseTextView.visibility = View.VISIBLE
-                refreshButton.visibility = View.VISIBLE
-                toggleBartButton.text = "Hide Data"
-                isDataVisible = true
+        // Set up the Line Spinner
+        lineSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                selectedLine = parent.getItemAtPosition(position).toString()
+                directionSpinner.visibility = View.VISIBLE
+                populateDirectionSpinner()  // Populate direction spinner
             }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
+        // Set up the Direction Spinner
+        directionSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                selectedDirection = parent.getItemAtPosition(position).toString()
+                stopSpinner.visibility = View.VISIBLE
+                populateStopSpinner()  // Populate stop spinner
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+
+        // Set up the Stop Spinner
+        stopSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                selectedStop = parent.getItemAtPosition(position).toString()
+                fetchDataAndDisplay()  // Fetch and display data
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
         // Set up the refresh button click listener
         refreshButton.setOnClickListener {
-            // Refresh the currently displayed data
-            if (toggleMuniButton.text == "Hide Data") {
-                fetchAndFormatData(muniUrl)
-            } else if (toggleBartButton.text == "Hide Data") {
-                fetchAndFormatData(bartUrl)
-            }
+            fetchDataAndDisplay()
         }
     }
 
-    // Function to fetch data from the provided URL and format it
-    private fun fetchAndFormatData(url: String) {
-        val queue = Volley.newRequestQueue(this)
+    // Function to fetch data and display the response
+    private fun fetchDataAndDisplay() {
+        val url = when (selectedAgency) {
+            "BART" -> "https://my-stop.app/real-time-arrivals/24TH/BA"
+            "MUNI" -> "https://my-stop.app/real-time-arrivals/15567/SF"
+            else -> "https://my-stop.app/real-time-arrivals/15567/SF"  // Default to MUNI
+        }
 
-        val stringRequest = StringRequest(
-            Request.Method.GET, url,
+        val queue = Volley.newRequestQueue(this)
+        val stringRequest = StringRequest(Request.Method.GET, url,
             { response ->
-                formattedData = formatJsonResponse(response)
+                val formattedData = formatJsonResponse(response)
                 responseTextView.text = formattedData
+                refreshButton.visibility = View.VISIBLE
             },
             { error ->
                 responseTextView.text = "Error fetching data: ${error.message}"
+                refreshButton.visibility = View.VISIBLE
             })
 
         queue.add(stringRequest)
@@ -131,5 +149,41 @@ class MainActivity : AppCompatActivity() {
         }
 
         return if (formattedResponse.isEmpty()) "No data available" else formattedResponse.toString()
+    }
+
+    // Function to populate the Agency Spinner
+    private fun populateAgencySpinner() {
+        val agencyList = arrayOf("MUNI", "BART")
+        val agencyAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, agencyList)
+        agencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        agencySpinner.adapter = agencyAdapter
+        agencySpinner.setSelection(0)  // Set default to MUNI
+    }
+
+    // Function to populate the Line Spinner
+    private fun populateLineSpinner() {
+        val lineList = arrayOf("Line 1", "Line 2")
+        val lineAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, lineList)
+        lineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        lineSpinner.adapter = lineAdapter
+        lineSpinner.setSelection(0)  // Set default value
+    }
+
+    // Function to populate the Direction Spinner
+    private fun populateDirectionSpinner() {
+        val directionList = arrayOf("Inbound", "Outbound")
+        val directionAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, directionList)
+        directionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        directionSpinner.adapter = directionAdapter
+        directionSpinner.setSelection(0)  // Set default value
+    }
+
+    // Function to populate the Stop Spinner
+    private fun populateStopSpinner() {
+        val stopList = arrayOf("Stop 1", "Stop 2")
+        val stopAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, stopList)
+        stopAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        stopSpinner.adapter = stopAdapter
+        stopSpinner.setSelection(0)  // Set default value
     }
 }

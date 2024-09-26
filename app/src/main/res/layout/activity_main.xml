@@ -6,23 +6,32 @@
     android:padding="16dp"
     android:background="?android:attr/windowBackground">
 
-    <!-- Button to Show MUNI Data -->
-    <Button
-        android:id="@+id/toggleButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Show MUNI Data"
-        android:textColor="?android:attr/textColorPrimary"
-        android:background="?android:attr/selectableItemBackground" />
+    <!-- Dropdown for selecting Agency -->
+    <Spinner
+        android:id="@+id/agencySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
-    <!-- Button to Show BART Data -->
-    <Button
-        android:id="@+id/toggleBartButton"
-        android:layout_width="wrap_content"
+    <!-- Dropdown for selecting Transit Line -->
+    <Spinner
+        android:id="@+id/lineSpinner"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Show BART Data"
-        android:textColor="?android:attr/textColorPrimary"
-        android:background="?android:attr/selectableItemBackground" />
+        android:visibility="gone" />
+
+    <!-- Dropdown for selecting Direction -->
+    <Spinner
+        android:id="@+id/directionSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <!-- Dropdown for selecting Stop -->
+    <Spinner
+        android:id="@+id/stopSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 
     <!-- TextView to Display the Response -->
     <TextView
