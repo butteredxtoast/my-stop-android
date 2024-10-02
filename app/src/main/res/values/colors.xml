@@ -9,10 +9,19 @@
 
     <!-- Background color for dark mode -->
     <color name="background_dark">#121212</color>
+    <color name="light_grey">#D3D3D3</color>
+    <color name="search_text_hint">#888888</color>
 
     <!-- Primary text color for dark mode -->
     <color name="primaryTextColor">#FFFFFF</color>
 
     <!-- Secondary text color for dark mode -->
     <color name="secondaryTextColor">#B3B3B3</color>
+
+    <!-- Black -->
+    <color name="black">#000000</color>
+
+    <!-- White -->
+    <color name="white">#FFFFFF</color>
+
 </resources>

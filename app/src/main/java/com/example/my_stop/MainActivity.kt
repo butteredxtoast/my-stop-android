@@ -1,6 +1,8 @@
 package com.example.my_stop
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +14,7 @@ import org.json.JSONObject
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import androidx.appcompat.widget.SearchView
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,32 +41,42 @@ class MainActivity : AppCompatActivity() {
         directionSpinner = findViewById(R.id.directionSpinner)
         stopSpinner = findViewById(R.id.stopSpinner)
 
-        // Populate the agency spinner
+        // Populate the agency spinner with a placeholder
         populateAgencySpinner()
 
         // Set up the Agency Spinner onItemSelectedListener
         agencySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 selectedAgency = parent.getItemAtPosition(position).toString()
-                lineSpinner.visibility = View.VISIBLE
-                populateLineSpinner()  // Populate line spinner when an agency is selected
+
+                // Check if a valid agency is selected (not the placeholder)
+                if (position > 0) {
+                    lineSpinner.visibility = View.VISIBLE
+                    populateLineSpinner()
+                } else {
+                    // Hide other spinners if placeholder is selected
+                    lineSpinner.visibility = View.GONE
+                    directionSpinner.visibility = View.GONE
+                    stopSpinner.visibility = View.GONE
+                    responseTextView.text = ""  // Clear displayed data
+                }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
-        // Set up the Line Spinner
+        // Line Spinner
         lineSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 selectedLine = parent.getItemAtPosition(position).toString()
                 directionSpinner.visibility = View.VISIBLE
-                populateDirectionSpinner()  // Populate direction spinner
+                populateDirectionSpinner()  // Populate direction spinner when a line is selected
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
-        // Set up the Direction Spinner
+        // Direction Spinner
         directionSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 selectedDirection = parent.getItemAtPosition(position).toString()
@@ -74,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
-        // Set up the Stop Spinner
+        // Stop Spinner
         stopSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 selectedStop = parent.getItemAtPosition(position).toString()
@@ -84,13 +97,46 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
-        // Set up the refresh button click listener
+        // Refresh button click listener
         refreshButton.setOnClickListener {
             fetchDataAndDisplay()
         }
     }
 
-    // Function to fetch data and display the response
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        val searchItem: MenuItem? = menu?.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView
+
+        // Search bar
+        searchView?.queryHint = "Search for a stop"
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (query != null) {
+                    filterStops(query)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText != null) {
+                    filterStops(newText)
+                }
+                return true
+            }
+        })
+        return true
+    }
+
+    private fun filterStops(query: String) {
+        // Hardcoded stop list
+        val stopList = listOf("24TH St", "Mission St", "Van Ness", "Powell St", "Civic Center")
+        val filteredStops = stopList.filter { it.contains(query, ignoreCase = true) }
+
+        stopSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filteredStops)
+        stopSpinner.visibility = View.VISIBLE
+    }
+
     private fun fetchDataAndDisplay() {
         val url = when (selectedAgency) {
             "BART" -> "https://my-stop.app/real-time-arrivals/24TH/BA"
@@ -113,7 +159,6 @@ class MainActivity : AppCompatActivity() {
         queue.add(stringRequest)
     }
 
-    // Function to format JSON response
     private fun formatJsonResponse(response: String): String {
         val formattedResponse = StringBuilder()
 
@@ -151,39 +196,35 @@ class MainActivity : AppCompatActivity() {
         return if (formattedResponse.isEmpty()) "No data available" else formattedResponse.toString()
     }
 
-    // Function to populate the Agency Spinner
     private fun populateAgencySpinner() {
-        val agencyList = arrayOf("MUNI", "BART")
+        val agencyList = arrayOf("Select an Agency", "MUNI", "BART")
         val agencyAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, agencyList)
         agencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         agencySpinner.adapter = agencyAdapter
-        agencySpinner.setSelection(0)  // Set default to MUNI
+        agencySpinner.setSelection(0)  // Set default to the placeholder value
     }
 
-    // Function to populate the Line Spinner
     private fun populateLineSpinner() {
         val lineList = arrayOf("Line 1", "Line 2")
         val lineAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, lineList)
         lineAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         lineSpinner.adapter = lineAdapter
-        lineSpinner.setSelection(0)  // Set default value
+        lineSpinner.setSelection(0)
     }
 
-    // Function to populate the Direction Spinner
     private fun populateDirectionSpinner() {
         val directionList = arrayOf("Inbound", "Outbound")
         val directionAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, directionList)
         directionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         directionSpinner.adapter = directionAdapter
-        directionSpinner.setSelection(0)  // Set default value
+        directionSpinner.setSelection(0)
     }
 
-    // Function to populate the Stop Spinner
     private fun populateStopSpinner() {
         val stopList = arrayOf("Stop 1", "Stop 2")
         val stopAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, stopList)
         stopAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         stopSpinner.adapter = stopAdapter
-        stopSpinner.setSelection(0)  // Set default value
+        stopSpinner.setSelection(0)
     }
 }

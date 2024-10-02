@@ -3,20 +3,41 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="?android:attr/windowBackground">
+    android:background="@android:color/black"
+    android:padding="8dp">
+
+    <!-- Search Bar at the Top -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:queryHint="Search for a stop"
+        android:iconifiedByDefault="false"
+        android:background="@drawable/search_background" />
 
     <!-- Dropdown for selecting Agency -->
     <Spinner
         android:id="@+id/agencySpinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:spinnerMode="dropdown"
+        android:background="@drawable/spinner_background"
+        android:padding="12dp"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
 
     <!-- Dropdown for selecting Transit Line -->
     <Spinner
         android:id="@+id/lineSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:spinnerMode="dropdown"
+        android:background="@drawable/spinner_background"
+        android:padding="12dp"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
         android:visibility="gone" />
 
     <!-- Dropdown for selecting Direction -->
@@ -24,6 +45,12 @@
         android:id="@+id/directionSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:spinnerMode="dropdown"
+        android:background="@drawable/spinner_background"
+        android:padding="12dp"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
         android:visibility="gone" />
 
     <!-- Dropdown for selecting Stop -->
@@ -31,6 +58,12 @@
         android:id="@+id/stopSpinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:spinnerMode="dropdown"
+        android:background="@drawable/spinner_background"
+        android:padding="12dp"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
         android:visibility="gone" />
 
     <!-- TextView to Display the Response -->
@@ -38,9 +71,10 @@
         android:id="@+id/responseTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Awaiting data..."
+        android:textColor="@android:color/white"
         android:textSize="18sp"
-        android:textColor="?android:attr/textColorPrimary" />
+        android:layout_marginTop="16dp"
+        android:visibility="gone" />
 
     <!-- Refresh Button -->
     <Button
