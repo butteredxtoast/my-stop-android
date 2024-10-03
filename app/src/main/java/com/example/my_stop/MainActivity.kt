@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var lineSpinner: Spinner
     private lateinit var directionSpinner: Spinner
     private lateinit var stopSpinner: Spinner
+    private lateinit var searchView: SearchView
 
     private var selectedAgency: String = "MUNI"  // Default to MUNI
     private var selectedLine: String = ""
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         lineSpinner = findViewById(R.id.lineSpinner)
         directionSpinner = findViewById(R.id.directionSpinner)
         stopSpinner = findViewById(R.id.stopSpinner)
+        searchView = findViewById(R.id.searchView)
 
         // Populate the agency spinner with a placeholder
         populateAgencySpinner()
@@ -51,10 +53,12 @@ class MainActivity : AppCompatActivity() {
 
                 // Check if a valid agency is selected (not the placeholder)
                 if (position > 0) {
+                    searchView.visibility = View.VISIBLE
                     lineSpinner.visibility = View.VISIBLE
                     populateLineSpinner()
                 } else {
                     // Hide other spinners if placeholder is selected
+                    searchView.visibility = View.GONE
                     lineSpinner.visibility = View.GONE
                     directionSpinner.visibility = View.GONE
                     stopSpinner.visibility = View.GONE

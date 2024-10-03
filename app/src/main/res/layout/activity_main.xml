@@ -6,15 +6,6 @@
     android:background="@android:color/black"
     android:padding="8dp">
 
-    <!-- Search Bar at the Top -->
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:queryHint="Search for a stop"
-        android:iconifiedByDefault="false"
-        android:background="@drawable/search_background" />
-
     <!-- Dropdown for selecting Agency -->
     <Spinner
         android:id="@+id/agencySpinner"
@@ -26,6 +17,15 @@
         android:padding="12dp"
         android:textColor="@android:color/white"
         android:textSize="16sp" />
+
+    <!-- Search Bar at the Top -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:queryHint="Search for a stop"
+        android:visibility="gone"
+        android:layout_marginTop="16dp" />
 
     <!-- Dropdown for selecting Transit Line -->
     <Spinner
